@@ -1,13 +1,8 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Set default values for development to prevent the "supabaseUrl is required" error
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-id.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
-
-if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-  console.warn('Supabase URL or Anon Key is missing. Using fallback values for development. Please set the environment variables for production.');
-}
+const supabaseUrl = 'https://ogknvclhpzhibhbgqgue.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9na252Y2xocHpoaWJoYmdxZ3VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1ODIyNTIsImV4cCI6MjA1OTE1ODI1Mn0.vwocTVlBV9JMdwjJACQXNzCJQbzw2ZE-oRSaN6eU-90';
 
 export const supabase = createClient(
   supabaseUrl,
