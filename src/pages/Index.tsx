@@ -24,9 +24,9 @@ const Index = () => {
                     Get Started <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
-                <Link to="/login">
+                <Link to="/pricing">
                   <Button size="lg" variant="outline">
-                    Log in
+                    View Pricing
                   </Button>
                 </Link>
               </div>
@@ -214,60 +214,20 @@ const Index = () => {
           <p className="text-xl mb-8 text-white/80 max-w-2xl mx-auto">
             Join thousands of professionals who are thriving both at work and at home with FamilyWell.
           </p>
-          <Link to="/register">
-            <Button size="lg" className="bg-white text-brand-blue hover:bg-white/90">
-              Start Your Free Trial
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/register">
+              <Button size="lg" className="bg-white text-brand-blue hover:bg-white/90">
+                Start Your Free Trial
+              </Button>
+            </Link>
+            <Link to="/pricing">
+              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
+                View Pricing Plans
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-muted py-12">
-        <div className="container px-4 mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div>
-              <h5 className="font-bold mb-4">FamilyWell</h5>
-              <ul className="space-y-2">
-                <li><Link to="/" className="text-muted-foreground hover:text-foreground">Home</Link></li>
-                <li><Link to="/about" className="text-muted-foreground hover:text-foreground">About</Link></li>
-                <li><Link to="/features" className="text-muted-foreground hover:text-foreground">Features</Link></li>
-                <li><Link to="/pricing" className="text-muted-foreground hover:text-foreground">Pricing</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-bold mb-4">Resources</h5>
-              <ul className="space-y-2">
-                <li><Link to="/blog" className="text-muted-foreground hover:text-foreground">Blog</Link></li>
-                <li><Link to="/help" className="text-muted-foreground hover:text-foreground">Help Center</Link></li>
-                <li><Link to="/guides" className="text-muted-foreground hover:text-foreground">Guides</Link></li>
-                <li><Link to="/community" className="text-muted-foreground hover:text-foreground">Community</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-bold mb-4">Company</h5>
-              <ul className="space-y-2">
-                <li><Link to="/careers" className="text-muted-foreground hover:text-foreground">Careers</Link></li>
-                <li><Link to="/privacy" className="text-muted-foreground hover:text-foreground">Privacy</Link></li>
-                <li><Link to="/terms" className="text-muted-foreground hover:text-foreground">Terms</Link></li>
-                <li><Link to="/contact" className="text-muted-foreground hover:text-foreground">Contact</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-bold mb-4">Connect</h5>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Twitter</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Facebook</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Instagram</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">LinkedIn</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-12 pt-8 border-t border-border text-center">
-            <p className="text-muted-foreground">© 2023 FamilyWell. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

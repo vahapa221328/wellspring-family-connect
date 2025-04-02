@@ -35,6 +35,18 @@ const Header: React.FC<HeaderProps> = ({
           </Link>
         </div>
 
+        <div className="hidden md:flex items-center gap-4">
+          <Link to="/pricing" className="text-foreground/80 hover:text-foreground transition-colors">
+            Pricing
+          </Link>
+          <Link to="/features" className="text-foreground/80 hover:text-foreground transition-colors">
+            Features
+          </Link>
+          <Link to="/about" className="text-foreground/80 hover:text-foreground transition-colors">
+            About
+          </Link>
+        </div>
+
         {!isAuthenticated ? (
           <div className="flex gap-2">
             <Link to="/login">

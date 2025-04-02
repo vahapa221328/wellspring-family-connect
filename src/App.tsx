@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 
 import AppLayout from "./components/layout/AppLayout";
 import Index from "./pages/Index";
@@ -12,17 +13,16 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import Pricing from "./pages/Pricing";
 import "@/App.css";
 
 const queryClient = new QueryClient();
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  // Here we would check if the user is authenticated
-  // For now, we'll simulate this with a localStorage check
-  const isAuthenticated = localStorage.getItem('supabase.auth.token') !== null;
+  const { user } = useAuth();
   
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to="/login" />;
   }
   
@@ -41,6 +41,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/pricing" element={<Pricing />} />
             </Route>
             
             {/* Protected routes with sidebar */}
