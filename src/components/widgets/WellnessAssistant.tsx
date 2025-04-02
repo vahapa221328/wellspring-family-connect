@@ -15,7 +15,7 @@ interface Message {
 const initialMessages: Message[] = [
   {
     id: '1',
-    text: 'Hello! I'm your wellness assistant. How can I help you today? I can provide tips on hydration, posture, or family connectivity.',
+    text: "Hello! I'm your wellness assistant. How can I help you today? I can provide tips on hydration, posture, or family connectivity.",
     sender: 'assistant',
     timestamp: new Date()
   }
