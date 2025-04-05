@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isAuthenticated } from "@/lib/supabase";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/context/AuthContext";
 
 const LoginPage = () => {
   const [loginEmail, setLoginEmail] = useState("");
@@ -16,10 +15,10 @@ const LoginPage = () => {
   const [signupPassword, setSignupPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { login, signup } = useAuth();
+  const { login, signup } = useAuthContext();
 
   // Redirect if already logged in
-  useState(() => {
+  useEffect(() => {
     const checkAuth = async () => {
       const authenticated = await isAuthenticated();
       if (authenticated) {
@@ -27,7 +26,7 @@ const LoginPage = () => {
       }
     };
     checkAuth();
-  });
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +53,7 @@ const LoginPage = () => {
       <div className="max-w-md w-full">
         <div className="text-center mb-6">
           <img
-            src="/public/lovable-uploads/bb92a12a-903b-4294-b05d-81b783c1576f.png"
+            src="/lovable-uploads/bb92a12a-903b-4294-b05d-81b783c1576f.png"
             alt="Wellspring Family"
             className="h-16 w-16 mx-auto mb-2"
           />

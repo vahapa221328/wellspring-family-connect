@@ -1,26 +1,26 @@
 
-import { ref, computed } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '@supabase/supabase-js';
 
 export function useAuth() {
-  const user = ref<User | null>(null);
-  const loading = ref(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   // Check if user is already logged in
   const checkUser = async () => {
     try {
-      loading.value = true;
+      setLoading(true);
       const { data } = await supabase.auth.getSession();
-      user.value = data.session?.user || null;
-      return !!user.value;
+      setUser(data.session?.user || null);
+      return !!data.session?.user;
     } catch (error) {
       console.error('Error checking auth status:', error);
       return false;
     } finally {
-      loading.value = false;
+      setLoading(false);
     }
   };
 
@@ -31,7 +31,7 @@ export function useAuth() {
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        user.value = session?.user || null;
+        setUser(session?.user || null);
       }
     );
 
@@ -44,7 +44,7 @@ export function useAuth() {
   // Login with email and password
   const login = async (email: string, password: string) => {
     try {
-      loading.value = true;
+      setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -59,7 +59,7 @@ export function useAuth() {
         return false;
       }
 
-      user.value = data.user;
+      setUser(data.user);
       toast({
         title: 'Login successful',
         description: `Welcome back, ${email}!`,
@@ -73,14 +73,14 @@ export function useAuth() {
       });
       return false;
     } finally {
-      loading.value = false;
+      setLoading(false);
     }
   };
 
   // Sign up with email and password
   const signup = async (email: string, password: string) => {
     try {
-      loading.value = true;
+      setLoading(true);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -95,7 +95,7 @@ export function useAuth() {
         return false;
       }
 
-      user.value = data.user;
+      setUser(data.user);
       toast({
         title: 'Signup successful',
         description: 'Welcome to Wellspring! Please check your email to confirm your account.',
@@ -109,14 +109,14 @@ export function useAuth() {
       });
       return false;
     } finally {
-      loading.value = false;
+      setLoading(false);
     }
   };
 
   // Logout
   const logout = async () => {
     try {
-      loading.value = true;
+      setLoading(true);
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -128,7 +128,7 @@ export function useAuth() {
         return false;
       }
 
-      user.value = null;
+      setUser(null);
       toast({
         title: 'Logged out',
         description: 'You have been successfully logged out.',
@@ -142,11 +142,11 @@ export function useAuth() {
       });
       return false;
     } finally {
-      loading.value = false;
+      setLoading(false);
     }
   };
 
-  const isLoggedIn = computed(() => !!user.value);
+  const isLoggedIn = !!user;
 
   return {
     user,
