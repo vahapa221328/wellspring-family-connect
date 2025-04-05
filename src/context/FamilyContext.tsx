@@ -9,6 +9,7 @@ interface FamilyContextType {
   loading: boolean;
   error: Error | null;
   loadFamily: () => Promise<void>;
+  loadMembers: () => Promise<void>;
   updateFamilyData: (data: Partial<Family>) => Promise<void>;
   addMember: (member: Omit<FamilyMember, 'id' | 'created_at'>) => Promise<void>;
   updateMember: (member: Partial<FamilyMember>) => Promise<void>;

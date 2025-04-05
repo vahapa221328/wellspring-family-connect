@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { familyService } from '@/services/family.service';
@@ -16,16 +15,31 @@ export function useFamily() {
       setLoading(true);
       const familyData = await familyService.getCurrentFamily();
       setFamily(familyData);
-      if (familyData) {
-        const membersData = await familyService.getFamilyMembers(familyData.id);
-        setMembers(membersData);
-      }
     } catch (err) {
       console.error('Error loading family data:', err);
       setError(err as Error);
       toast({
         title: 'Error',
         description: 'Failed to load family data. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadMembers = async () => {
+    try {
+      if (!family?.id) return;
+      setLoading(true);
+      const membersData = await familyService.getFamilyMembers(family.id);
+      setMembers(membersData);
+    } catch (err) {
+      console.error('Error loading family members:', err);
+      setError(err as Error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load family members. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -131,6 +145,7 @@ export function useFamily() {
     loading,
     error,
     loadFamily,
+    loadMembers,
     updateFamilyData,
     addMember,
     updateMember,
