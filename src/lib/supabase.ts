@@ -14,6 +14,7 @@ export type Family = {
   level: number;
   created_at: string;
   avatar_url?: string;
+  user_id: string; // Add user_id to connect families to users
 };
 
 export type FamilyMember = {
@@ -104,6 +105,16 @@ export type Goal = {
   created_at: string;
 };
 
+// User profile type
+export type UserProfile = {
+  id: string;
+  user_id: string;
+  display_name: string;
+  avatar_url?: string;
+  created_at: string;
+  updated_at: string;
+};
+
 // Auth Helper functions
 export const isAuthenticated = async () => {
   const { data } = await supabase.auth.getSession();
@@ -118,4 +129,3 @@ export const getCurrentUser = async () => {
 export const signOut = async () => {
   return supabase.auth.signOut();
 };
-

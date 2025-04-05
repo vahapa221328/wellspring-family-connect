@@ -1,41 +1,69 @@
 
-import { Link } from "react-router-dom";
-import { LucideHome, Users, Award, Calendar, Map, Heart } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { Heart, Calendar, LucideHome, Users, Award, Map, MessageSquare, LogOut } from "lucide-react";
+import { useAuthContext } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export const FamilyNavigation = () => {
+  const location = useLocation();
+  const { logout, user } = useAuthContext();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    const success = await logout();
+    if (success) {
+      navigate("/login");
+    }
+  };
+
+  const isActive = (path: string) => location.pathname === path;
+
+  const items = [
+    { name: "Home", path: "/", icon: LucideHome },
+    { name: "Family", path: "/family", icon: Users },
+    { name: "Tasks", path: "/tasks", icon: Calendar },
+    { name: "Wellbeing", path: "/wellbeing", icon: Heart },
+    { name: "Challenges", path: "/challenges", icon: Award },
+    { name: "Trips", path: "/trips", icon: Map },
+  ];
+
   return (
-    <div className="bg-white shadow-sm dark:bg-gray-800">
+    <div className="bg-white dark:bg-gray-900 shadow-sm">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between overflow-x-auto">
-          <NavItem icon={<LucideHome className="w-5 h-5" />} label="Dashboard" to="/" active />
-          <NavItem icon={<Users className="w-5 h-5" />} label="Family" to="/family" />
-          <NavItem icon={<Calendar className="w-5 h-5" />} label="Tasks" to="/tasks" />
-          <NavItem icon={<Award className="w-5 h-5" />} label="Challenges" to="/challenges" />
-          <NavItem icon={<Map className="w-5 h-5" />} label="Trips" to="/trips" />
-          <NavItem icon={<Heart className="w-5 h-5" />} label="Wellbeing" to="/wellbeing" />
+        <div className="overflow-x-auto">
+          <div className="flex space-x-1 md:space-x-2 py-3 min-w-max">
+            {items.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    "flex items-center gap-1 rounded-md px-2 py-1.5 text-sm font-medium md:px-3 md:py-2",
+                    isActive(item.path)
+                      ? "bg-purple-100 text-purple-900 dark:bg-purple-900 dark:text-purple-100"
+                      : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="hidden md:inline">{item.name}</span>
+                </Link>
+              );
+            })}
+            
+            {user && (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1 rounded-md px-2 py-1.5 text-sm font-medium md:px-3 md:py-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 ml-auto"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden md:inline">Logout</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
-  );
-};
-
-const NavItem = ({ icon, label, to, active = false }: { 
-  icon: React.ReactNode; 
-  label: string; 
-  to: string;
-  active?: boolean;
-}) => {
-  return (
-    <Link
-      to={to}
-      className={`flex flex-col items-center py-3 px-5 ${
-        active 
-        ? "text-purple-600 border-b-2 border-purple-600 dark:text-purple-400 dark:border-purple-400" 
-        : "text-gray-600 hover:text-purple-600 dark:text-gray-300 dark:hover:text-purple-400"
-      }`}
-    >
-      {icon}
-      <span className="text-xs mt-1">{label}</span>
-    </Link>
   );
 };

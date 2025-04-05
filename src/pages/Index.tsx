@@ -9,8 +9,38 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FamilyNavigation } from "@/components/FamilyNavigation";
 import { TaskList } from "@/components/TaskList";
 import { QuickMoodCheck } from "@/components/QuickMoodCheck";
+import { useAuthContext } from "@/context/AuthContext";
+import { useFamilyContext } from "@/context/FamilyContext";
+import { useEffect, useState } from "react";
+import { useTasks } from "@/hooks/useTasks";
+import { useMood } from "@/hooks/useMood";
 
 const Index = () => {
+  const { user } = useAuthContext();
+  const { family, members, loadFamily, loadMembers } = useFamilyContext();
+  const [selectedMember, setSelectedMember] = useState<string | undefined>(undefined);
+  const { tasks, loading: tasksLoading } = useTasks(family?.id || "");
+  const { recentMoods, loading: moodsLoading } = useMood(selectedMember);
+
+  useEffect(() => {
+    if (user) {
+      loadFamily();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (family?.id) {
+      loadMembers();
+    }
+  }, [family]);
+
+  // Set the first member as selected when members are loaded
+  useEffect(() => {
+    if (members && members.length > 0) {
+      setSelectedMember(members[0].id);
+    }
+  }, [members]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-indigo-50 dark:from-purple-950 dark:to-indigo-950">
       {/* Header with Navigation */}
@@ -29,7 +59,7 @@ const Index = () => {
               <div className="flex items-center gap-2">
                 <div className="bg-purple-700 px-3 py-1 rounded-full flex items-center">
                   <Heart className="h-4 w-4 text-red-400 mr-1" />
-                  <span className="text-sm font-medium">47/50</span>
+                  <span className="text-sm font-medium">{family?.level || 0}/50</span>
                 </div>
                 <div className="bg-purple-700 px-3 py-1 rounded-full flex items-center">
                   <Award className="h-4 w-4 text-yellow-400 mr-1" />
@@ -38,7 +68,7 @@ const Index = () => {
               </div>
               <Avatar>
                 <AvatarImage src="/public/lovable-uploads/000c3c36-8517-4a1f-a882-1cf196368cb7.png" alt="Avatar" />
-                <AvatarFallback>FW</AvatarFallback>
+                <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase() || "U"}</AvatarFallback>
               </Avatar>
             </div>
           </div>
@@ -56,8 +86,8 @@ const Index = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-xl flex justify-between items-center">
-                  <span>The Jackson Family</span>
-                  <span className="text-sm bg-purple-100 text-purple-800 px-2 py-1 rounded">Level 1</span>
+                  <span>{family?.name || "Your Family"}</span>
+                  <span className="text-sm bg-purple-100 text-purple-800 px-2 py-1 rounded">Level {family?.level || 1}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -65,19 +95,22 @@ const Index = () => {
                   <div className="relative">
                     <div className="bg-indigo-100 w-32 h-32 flex items-center justify-center rounded-lg mb-3">
                       <img 
-                        src="/public/lovable-uploads/ba49412f-5401-4238-af2b-fb6bb3b13a54.png" 
+                        src={family?.avatar_url || "/public/lovable-uploads/ba49412f-5401-4238-af2b-fb6bb3b13a54.png"} 
                         alt="Family Avatar" 
                         className="h-24 w-24 object-contain"
                       />
                     </div>
                   </div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    <span>Welcome, {user?.email}</span>
+                  </div>
                   <div className="w-full mt-3 space-y-3">
                     <div>
                       <div className="flex justify-between mb-1 text-sm">
                         <span>Relationship XP</span>
-                        <span>47/50</span>
+                        <span>{family?.level || 0}/50</span>
                       </div>
-                      <Progress value={94} className="h-2 bg-purple-100" />
+                      <Progress value={family?.level ? (family.level / 50) * 100 : 0} className="h-2 bg-purple-100" />
                     </div>
                     <div>
                       <div className="flex justify-between mb-1 text-sm">
@@ -91,25 +124,34 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <QuickMoodCheck />
+            {selectedMember && <QuickMoodCheck memberId={selectedMember} />}
 
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Upcoming Trip</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg p-4 text-white">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">Beach Vacation</h3>
-                    <Map className="h-5 w-5" />
+                {family?.id ? (
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg p-4 text-white">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold">Beach Vacation</h3>
+                      <Map className="h-5 w-5" />
+                    </div>
+                    <p className="text-sm opacity-90 mb-2">Planning phase: 45% complete</p>
+                    <Progress value={45} className="h-1.5 bg-white/20" />
+                    <div className="flex justify-between items-center mt-3">
+                      <span className="text-xs">July 15-22</span>
+                      <Button size="sm" variant="secondary" className="h-7 text-xs">Plan Details</Button>
+                    </div>
                   </div>
-                  <p className="text-sm opacity-90 mb-2">Planning phase: 45% complete</p>
-                  <Progress value={45} className="h-1.5 bg-white/20" />
-                  <div className="flex justify-between items-center mt-3">
-                    <span className="text-xs">July 15-22</span>
-                    <Button size="sm" variant="secondary" className="h-7 text-xs">Plan Details</Button>
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    <p>No upcoming trips. Create one!</p>
+                    <Button variant="outline" size="sm" className="mt-2">
+                      <Link to="/trips">Plan a Trip</Link>
+                    </Button>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -126,7 +168,13 @@ const Index = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <TaskList />
+                {family?.id ? (
+                  <TaskList />
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    <p>No tasks yet. Create your first task!</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -144,45 +192,51 @@ const Index = () => {
                     <TabsTrigger value="completed" className="flex-1">Completed</TabsTrigger>
                   </TabsList>
                   <TabsContent value="active">
-                    <div className="space-y-3">
-                      <div className="border rounded-lg p-3 hover:bg-purple-50 transition cursor-pointer">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium">Weekly Family Dinner</h3>
-                            <p className="text-sm text-gray-600">Share a meal together 3 times this week</p>
+                    {family?.id ? (
+                      <div className="space-y-3">
+                        <div className="border rounded-lg p-3 hover:bg-purple-50 transition cursor-pointer">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium">Weekly Family Dinner</h3>
+                              <p className="text-sm text-gray-600">Share a meal together 3 times this week</p>
+                            </div>
+                            <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                              +10 XP
+                            </div>
                           </div>
-                          <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
-                            +10 XP
+                          <div className="mt-2">
+                            <Progress value={66} className="h-1.5" />
+                            <div className="flex justify-between mt-1 text-xs text-gray-500">
+                              <span>2/3 completed</span>
+                              <span>Due in 2 days</span>
+                            </div>
                           </div>
                         </div>
-                        <div className="mt-2">
-                          <Progress value={66} className="h-1.5" />
-                          <div className="flex justify-between mt-1 text-xs text-gray-500">
-                            <span>2/3 completed</span>
-                            <span>Due in 2 days</span>
+                        
+                        <div className="border rounded-lg p-3 hover:bg-purple-50 transition cursor-pointer">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium">Trip Planning</h3>
+                              <p className="text-sm text-gray-600">Complete your vacation checklist</p>
+                            </div>
+                            <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                              +25 XP
+                            </div>
+                          </div>
+                          <div className="mt-2">
+                            <Progress value={45} className="h-1.5" />
+                            <div className="flex justify-between mt-1 text-xs text-gray-500">
+                              <span>9/20 tasks</span>
+                              <span>Due in 10 days</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="border rounded-lg p-3 hover:bg-purple-50 transition cursor-pointer">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium">Trip Planning</h3>
-                            <p className="text-sm text-gray-600">Complete your vacation checklist</p>
-                          </div>
-                          <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
-                            +25 XP
-                          </div>
-                        </div>
-                        <div className="mt-2">
-                          <Progress value={45} className="h-1.5" />
-                          <div className="flex justify-between mt-1 text-xs text-gray-500">
-                            <span>9/20 tasks</span>
-                            <span>Due in 10 days</span>
-                          </div>
-                        </div>
+                    ) : (
+                      <div className="text-center py-4 text-gray-500">
+                        <p>No active challenges. Create one!</p>
                       </div>
-                    </div>
+                    )}
                   </TabsContent>
                   <TabsContent value="completed">
                     <div className="text-center py-6 text-gray-500">
