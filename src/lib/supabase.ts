@@ -71,5 +71,51 @@ export type MoodCheck = {
   member_id: string;
   mood_value: number;
   date: string;
+  note?: string;
   created_at: string;
 };
+
+// This represents the data we get from the recent_moods view
+export type RecentMood = MoodCheck & {
+  member_name: string;
+  member_avatar_url?: string;
+  family_id: string;
+};
+
+// Activity types
+export type Activity = {
+  id: string;
+  family_id: string;
+  title: string;
+  description: string;
+  category: string;
+  xp_reward: number;
+  created_at: string;
+};
+
+// Goal types
+export type Goal = {
+  id: string;
+  family_id: string;
+  title: string;
+  description?: string;
+  completed: boolean;
+  due_date?: string;
+  created_at: string;
+};
+
+// Auth Helper functions
+export const isAuthenticated = async () => {
+  const { data } = await supabase.auth.getSession();
+  return !!data.session;
+};
+
+export const getCurrentUser = async () => {
+  const { data } = await supabase.auth.getUser();
+  return data.user;
+};
+
+export const signOut = async () => {
+  return supabase.auth.signOut();
+};
+

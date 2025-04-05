@@ -2,9 +2,15 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SmilePlus, Smile, Meh, Frown, AlertCircle } from "lucide-react";
+import { useFamilyContext } from "@/context/FamilyContext";
+import { useToast } from "@/hooks/use-toast";
+import { useMood } from "@/hooks/useMood";
 
-export const QuickMoodCheck = () => {
+export const QuickMoodCheck = ({ memberId }: { memberId?: string }) => {
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
+  const { toast } = useToast();
+  const { members } = useFamilyContext();
+  const { logMood } = useMood(memberId);
   
   const moods = [
     { value: 4, icon: SmilePlus, label: "Great", color: "bg-green-100 text-green-600" },
@@ -13,6 +19,34 @@ export const QuickMoodCheck = () => {
     { value: 1, icon: Frown, label: "Low", color: "bg-orange-100 text-orange-600" },
     { value: 0, icon: AlertCircle, label: "Bad", color: "bg-red-100 text-red-600" },
   ];
+
+  const handleMoodSelection = async (moodValue: number) => {
+    setSelectedMood(moodValue);
+    
+    if (!memberId) {
+      toast({
+        title: "Error",
+        description: "You need to select a family member first",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      await logMood(moodValue);
+      toast({
+        title: "Success",
+        description: `Mood logged: ${moods.find(m => m.value === moodValue)?.label}`,
+      });
+    } catch (error) {
+      console.error("Error logging mood:", error);
+      toast({
+        title: "Error",
+        description: "Failed to log mood",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <Card>
@@ -26,7 +60,7 @@ export const QuickMoodCheck = () => {
             return (
               <button
                 key={mood.value}
-                onClick={() => setSelectedMood(mood.value)}
+                onClick={() => handleMoodSelection(mood.value)}
                 className={`flex flex-col items-center p-2 rounded-lg transition-all ${
                   selectedMood === mood.value
                     ? `ring-2 ring-offset-2 ring-purple-500 ${mood.color}`

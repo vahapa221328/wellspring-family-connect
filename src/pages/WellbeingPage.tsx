@@ -1,3 +1,5 @@
+
+import { useState, useEffect } from "react";
 import { FamilyNavigation } from "@/components/FamilyNavigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,8 +7,91 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Award, Heart, Calendar, SmilePlus, Smile, Meh, Frown, AlertCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { QuickMoodCheck } from "@/components/QuickMoodCheck";
+import { useFamilyContext } from "@/context/FamilyContext";
+import { useMood } from "@/hooks/useMood";
+import { useToast } from "@/hooks/use-toast";
 
 const WellbeingPage = () => {
+  const { family, members, loading: familyLoading } = useFamilyContext();
+  const [selectedMember, setSelectedMember] = useState<string | undefined>();
+  const { moods, recentMoods, loading: moodsLoading, loadRecentMoods, getWeeklyMoodData } = useMood(selectedMember);
+  const { toast } = useToast();
+  const [weeklyMoodData, setWeeklyMoodData] = useState<any[]>([]);
+
+  // Get initials for avatar fallback
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase();
+  };
+
+  // Get mood icon by value
+  const getMoodIcon = (value: number) => {
+    switch (value) {
+      case 4: return <SmilePlus className="h-4 w-4 text-green-600" />;
+      case 3: return <Smile className="h-4 w-4 text-blue-600" />;
+      case 2: return <Meh className="h-4 w-4 text-yellow-600" />;
+      case 1: return <Frown className="h-4 w-4 text-orange-600" />;
+      case 0: return <AlertCircle className="h-4 w-4 text-red-600" />;
+      default: return null;
+    }
+  };
+
+  // Get mood background color by value
+  const getMoodBgColor = (value: number) => {
+    switch (value) {
+      case 4: return "bg-green-100";
+      case 3: return "bg-blue-100";
+      case 2: return "bg-yellow-100";
+      case 1: return "bg-orange-100";
+      case 0: return "bg-red-100";
+      default: return "bg-gray-50";
+    }
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + 
+           date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
+  // Load weekly mood data when member changes
+  useEffect(() => {
+    if (selectedMember) {
+      const weeklyData = getWeeklyMoodData();
+      setWeeklyMoodData(weeklyData);
+    }
+  }, [selectedMember, moods]);
+
+  // Load recent moods when family changes
+  useEffect(() => {
+    if (family?.id) {
+      loadRecentMoods();
+    }
+  }, [family?.id]);
+
+  // Set the first member as selected by default
+  useEffect(() => {
+    if (members.length > 0 && !selectedMember) {
+      setSelectedMember(members[0].id);
+    }
+  }, [members]);
+
+  const handleMemberSelect = (memberId: string) => {
+    setSelectedMember(memberId);
+  };
+
+  const sendReminder = () => {
+    toast({
+      title: "Reminder Sent",
+      description: "Check-in reminder has been sent to family members."
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-indigo-50 dark:from-purple-950 dark:to-indigo-950">
       {/* Header with Navigation */}
@@ -51,7 +136,7 @@ const WellbeingPage = () => {
             <h1 className="text-2xl font-bold text-gray-800">Family Wellbeing</h1>
             <p className="text-gray-600">Track and improve your family's emotional health</p>
           </div>
-          <Button className="bg-purple-600 hover:bg-purple-700">
+          <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setSelectedMember(members[0]?.id)}>
             <Heart className="h-4 w-4 mr-2" />
             Check-in Now
           </Button>
@@ -59,6 +144,11 @@ const WellbeingPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
+            {/* Current member mood check */}
+            {selectedMember && (
+              <QuickMoodCheck memberId={selectedMember} />
+            )}
+            
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Mood Tracker</CardTitle>
@@ -72,20 +162,15 @@ const WellbeingPage = () => {
                   <TabsContent value="weekly">
                     <div className="space-y-6">
                       <div className="grid grid-cols-7 gap-2">
-                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
-                          <div key={day} className="text-center">
-                            <div className="text-xs text-gray-500 mb-2">{day}</div>
+                        {weeklyMoodData.map((day, i) => (
+                          <div key={day.day} className="text-center">
+                            <div className="text-xs text-gray-500 mb-2">{day.day.slice(0, 3)}</div>
                             <div className={`h-16 rounded-lg border flex items-center justify-center ${
-                              i === 0 ? 'bg-green-100 border-green-200' : 
-                              i === 1 ? 'bg-blue-100 border-blue-200' : 
-                              i === 2 ? 'bg-yellow-100 border-yellow-200' : 
-                              i === 3 ? 'bg-orange-100 border-orange-200' : 
-                              'bg-gray-50 border-gray-100'
+                              day.hasMood 
+                                ? getMoodBgColor(Math.round(day.value)) 
+                                : 'bg-gray-50 border-gray-100'
                             }`}>
-                              {i === 0 && <SmilePlus className="h-6 w-6 text-green-600" />}
-                              {i === 1 && <Smile className="h-6 w-6 text-blue-600" />}
-                              {i === 2 && <Meh className="h-6 w-6 text-yellow-600" />}
-                              {i === 3 && <Frown className="h-6 w-6 text-orange-600" />}
+                              {day.hasMood && getMoodIcon(Math.round(day.value))}
                             </div>
                           </div>
                         ))}
@@ -183,58 +268,47 @@ const WellbeingPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-start p-3 rounded-lg bg-purple-50">
-                    <Avatar className="h-10 w-10 mr-3">
-                      <AvatarImage src="/public/lovable-uploads/000c3c36-8517-4a1f-a882-1cf196368cb7.png" />
-                      <AvatarFallback>J</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="flex items-center mb-1">
-                        <h3 className="font-medium text-sm">Jordan</h3>
-                        <span className="mx-2 text-gray-400">•</span>
-                        <span className="text-xs text-gray-500">Today, 9:15 AM</span>
-                        <div className="ml-2 bg-green-100 p-1 rounded-full">
-                          <SmilePlus className="h-4 w-4 text-green-600" />
+                  {/* Show actual recent moods or a placeholder if none exist */}
+                  {recentMoods.length > 0 ? (
+                    recentMoods.slice(0, 3).map((mood) => (
+                      <div key={mood.id} className="flex items-start p-3 rounded-lg bg-purple-50">
+                        <Avatar className="h-10 w-10 mr-3">
+                          <AvatarImage src={mood.member_avatar_url} />
+                          <AvatarFallback>{getInitials(mood.member_name)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="flex items-center mb-1">
+                            <h3 className="font-medium text-sm">{mood.member_name}</h3>
+                            <span className="mx-2 text-gray-400">•</span>
+                            <span className="text-xs text-gray-500">{formatDate(mood.date)}</span>
+                            <div className={`ml-2 ${getMoodBgColor(mood.mood_value)} p-1 rounded-full`}>
+                              {getMoodIcon(mood.mood_value)}
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600">{mood.note || "No note added for this check-in."}</p>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600">Feeling great today! Looking forward to our movie night.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start p-3 rounded-lg bg-purple-50">
-                    <Avatar className="h-10 w-10 mr-3">
-                      <AvatarImage src="/public/lovable-uploads/7b99b8a2-99f7-429b-aee6-adcaace0744b.png" />
-                      <AvatarFallback>T</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="flex items-center mb-1">
-                        <h3 className="font-medium text-sm">Taylor</h3>
-                        <span className="mx-2 text-gray-400">•</span>
-                        <span className="text-xs text-gray-500">Today, 8:30 AM</span>
-                        <div className="ml-2 bg-blue-100 p-1 rounded-full">
-                          <Smile className="h-4 w-4 text-blue-600" />
+                    ))
+                  ) : (
+                    // Example entry if no real data
+                    <div className="flex items-start p-3 rounded-lg bg-purple-50">
+                      <Avatar className="h-10 w-10 mr-3">
+                        <AvatarImage src="/public/lovable-uploads/000c3c36-8517-4a1f-a882-1cf196368cb7.png" />
+                        <AvatarFallback>J</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="flex items-center mb-1">
+                          <h3 className="font-medium text-sm">Jordan</h3>
+                          <span className="mx-2 text-gray-400">•</span>
+                          <span className="text-xs text-gray-500">Today, 9:15 AM</span>
+                          <div className="ml-2 bg-green-100 p-1 rounded-full">
+                            <SmilePlus className="h-4 w-4 text-green-600" />
+                          </div>
                         </div>
+                        <p className="text-sm text-gray-600">Feeling great today! Looking forward to our movie night.</p>
                       </div>
-                      <p className="text-sm text-gray-600">Good morning! Busy day ahead but in a positive mood.</p>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-start p-3 rounded-lg bg-purple-50">
-                    <Avatar className="h-10 w-10 mr-3">
-                      <AvatarFallback className="bg-purple-200 text-purple-800">R</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="flex items-center mb-1">
-                        <h3 className="font-medium text-sm">Riley</h3>
-                        <span className="mx-2 text-gray-400">•</span>
-                        <span className="text-xs text-gray-500">Yesterday, 7:45 PM</span>
-                        <div className="ml-2 bg-yellow-100 p-1 rounded-full">
-                          <Meh className="h-4 w-4 text-yellow-600" />
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600">Math test was tough today, but I think I did okay.</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -249,54 +323,34 @@ const WellbeingPage = () => {
                 <p className="text-sm text-gray-600 mb-4">How is everyone feeling today?</p>
                 
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b">
-                    <div className="flex items-center">
-                      <Avatar className="h-8 w-8 mr-2">
-                        <AvatarImage src="/public/lovable-uploads/000c3c36-8517-4a1f-a882-1cf196368cb7.png" />
-                        <AvatarFallback>J</AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm">Jordan</span>
-                    </div>
-                    <div className="bg-green-100 p-1 rounded-full">
-                      <SmilePlus className="h-4 w-4 text-green-600" />
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between pb-2 border-b">
-                    <div className="flex items-center">
-                      <Avatar className="h-8 w-8 mr-2">
-                        <AvatarImage src="/public/lovable-uploads/7b99b8a2-99f7-429b-aee6-adcaace0744b.png" />
-                        <AvatarFallback>T</AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm">Taylor</span>
-                    </div>
-                    <div className="bg-blue-100 p-1 rounded-full">
-                      <Smile className="h-4 w-4 text-blue-600" />
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between pb-2 border-b">
-                    <div className="flex items-center">
-                      <Avatar className="h-8 w-8 mr-2">
-                        <AvatarFallback className="bg-purple-200 text-purple-800">R</AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm">Riley</span>
-                    </div>
-                    <div className="text-gray-400 text-sm">Not checked in</div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between pb-2">
-                    <div className="flex items-center">
-                      <Avatar className="h-8 w-8 mr-2">
-                        <AvatarFallback className="bg-purple-200 text-purple-800">C</AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm">Casey</span>
-                    </div>
-                    <div className="text-gray-400 text-sm">Not checked in</div>
-                  </div>
+                  {members.map((member) => {
+                    // Find most recent mood for this member
+                    const memberRecentMood = recentMoods.find(mood => mood.member_id === member.id);
+                    const hasCheckedIn = !!memberRecentMood && 
+                      new Date(memberRecentMood.date).toDateString() === new Date().toDateString();
+                    
+                    return (
+                      <div key={member.id} className="flex items-center justify-between pb-2 border-b">
+                        <div className="flex items-center">
+                          <Avatar className="h-8 w-8 mr-2">
+                            <AvatarImage src={member.avatar_url} />
+                            <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm">{member.name}</span>
+                        </div>
+                        {hasCheckedIn ? (
+                          <div className={`${getMoodBgColor(memberRecentMood.mood_value)} p-1 rounded-full`}>
+                            {getMoodIcon(memberRecentMood.mood_value)}
+                          </div>
+                        ) : (
+                          <div className="text-gray-400 text-sm">Not checked in</div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
                 
-                <Button variant="outline" className="w-full mt-4">
+                <Button variant="outline" className="w-full mt-4" onClick={sendReminder}>
                   Send Check-in Reminder
                 </Button>
               </CardContent>
