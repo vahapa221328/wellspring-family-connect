@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SmilePlus, Smile, Meh, Frown, FrownOpen } from "lucide-react";
+import { SmilePlus, Smile, Meh, Frown, AlertCircle } from "lucide-react";
 
 export const QuickMoodCheck = () => {
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
@@ -11,7 +11,7 @@ export const QuickMoodCheck = () => {
     { value: 3, icon: Smile, label: "Good", color: "bg-blue-100 text-blue-600" },
     { value: 2, icon: Meh, label: "Okay", color: "bg-yellow-100 text-yellow-600" },
     { value: 1, icon: Frown, label: "Low", color: "bg-orange-100 text-orange-600" },
-    { value: 0, icon: FrownOpen, label: "Bad", color: "bg-red-100 text-red-600" },
+    { value: 0, icon: AlertCircle, label: "Bad", color: "bg-red-100 text-red-600" },
   ];
 
   return (
